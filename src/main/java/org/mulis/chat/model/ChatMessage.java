@@ -4,28 +4,34 @@ import java.util.Date;
 
 public class ChatMessage {
 
+    private final int index;
     private final Date date;
-    private final ChatUser userFrom;
-    private final ChatUser userTo;
+    private final ChatUser sender;
+    private final ChatUser receiver;
     private final String text;
 
-    public ChatMessage(ChatUser userFrom, ChatUser userTo, String text) {
+    public ChatMessage(int index, ChatUser sender, ChatUser receiver, String text) {
+        this.index = index;
         this.date = new Date();
-        this.userFrom = userFrom;
-        this.userTo = userTo;
+        this.sender = sender;
+        this.receiver = receiver;
         this.text = text;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public Date getDate() {
         return date;
     }
 
-    public ChatUser getUserFrom() {
-        return userFrom;
+    public ChatUser getSender() {
+        return sender;
     }
 
-    public ChatUser getUserTo() {
-        return userTo;
+    public ChatUser getReceiver() {
+        return receiver;
     }
 
     public String getText() {
@@ -35,9 +41,10 @@ public class ChatMessage {
     @Override
     public String toString() {
         return "ChatMessage{" +
+                "index=" + index + ", " +
                 "date=" + date + ", " +
-                "userFrom=" + userFrom + ", " +
-                "userTo=" + userTo + ", " +
+                "sender=" + sender + ", " +
+                "receiver=" + receiver + ", " +
                 "text='" + text + "'" +
                 "}";
     }

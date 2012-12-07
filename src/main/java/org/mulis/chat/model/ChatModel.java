@@ -2,7 +2,6 @@ package org.mulis.chat.model;
 
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,17 +9,23 @@ import java.util.LinkedList;
 @Service
 public class ChatModel {
 
-    private final HashMap<String, ChatUser> users = new HashMap<String, ChatUser>();
+    private final HashMap<String, ChatUser> users = new HashMap<String, ChatUser>() {{
+        put(ReservedChatUser.ADMIN.getUser().getNickname(), ReservedChatUser.ADMIN.getUser());
+        put(ReservedChatUser.ANY.getUser().getNickname(), ReservedChatUser.ANY.getUser());
+    }};
+
     private final LinkedList<ChatMessage> messages = new LinkedList<ChatMessage>();
+
+    private int messageIndex = 0;
 
     ChatModel() {
         ChatUser user1 = new ChatUser("user1", 0);
         addUser(user1);
-        addMessage(user1, null, "message 1");
+        postMessage(user1, null, "message 1");
     }
 
     public void addUser(String nickname, int color) {
-        users.put(nickname, new ChatUser(nickname, color));
+        addUser(new ChatUser(nickname, color));
     }
 
     public void addUser(ChatUser user) {
@@ -31,31 +36,32 @@ public class ChatModel {
         return users.get(nickname);
     }
 
-    public Date addMessage(ChatUser userFrom, ChatUser userTo, String text) {
-        ChatMessage message = new ChatMessage(userFrom, userTo, text);
-        return addMessage(message);
+    public ChatMessage postMessage(String senderNickname, String receiverNickname, String text) {
+        return postMessage(getUser(senderNickname), getUser(receiverNickname), text);
     }
 
-    public Date addMessage(ChatMessage message) {
-        messages.addLast(message);
-        return message.getDate();
+    public ChatMessage postMessage(ChatUser sender, ChatUser receiver, String text) {
+        ChatMessage message = new ChatMessage(messageIndex++, sender, receiver, text);
+        messages.push(message);
+        return message;
     }
 
-    public LinkedList<ChatMessage> getMessagesAfter(Date date, ChatUser userFor) {
+    public LinkedList<ChatMessage> getMessages(String userNickname, int index) {
 
         LinkedList<ChatMessage> massagesAfter = new LinkedList<ChatMessage>();
-        Iterator<ChatMessage> iterator = messages.descendingIterator();
+        Iterator<ChatMessage> iterator = messages.iterator();
         ChatMessage message;
 
         while (iterator.hasNext()) {
 
             message = iterator.next();
 
-            if (message.getDate().after(date)) {
-                if (message.getUserTo() != null && !message.getUserTo().equals(userFor)) {
-                    continue;
+            if (message.getIndex() > index) {
+                if (message.getSender().getNickname().equals(userNickname) ||
+                        message.getReceiver().getNickname().equals(userNickname) ||
+                        message.getReceiver().equals(getAny())) {
+                    massagesAfter.push(message);
                 }
-                massagesAfter.addFirst(message);
             } else {
                 break;
             }
@@ -63,6 +69,30 @@ public class ChatModel {
 
         return massagesAfter;
 
+    }
+
+    public boolean isSigned(String nickname) {
+        return users.containsKey(nickname);
+    }
+
+    public boolean isLogged(String nickname) {
+        return getUser(nickname).isLogged();
+    }
+
+    public void login(String nickname) {
+        getUser(nickname).setLogged(true);
+    }
+
+    public void logout(String nickname) {
+        getUser(nickname).setLogged(false);
+    }
+
+    public ChatUser getAdmin() {
+        return ReservedChatUser.ADMIN.getUser();
+    }
+
+    public ChatUser getAny() {
+        return ReservedChatUser.ANY.getUser();
     }
 
 }

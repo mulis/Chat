@@ -9,6 +9,7 @@ public class ChatUser {
     public ChatUser(String nickname, int color) {
         this.nickname = nickname;
         this.color = color;
+        this.logged = false;
     }
 
     public String getNickname() {
