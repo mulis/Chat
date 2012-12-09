@@ -8,12 +8,12 @@ public class GetMessagesResponseBody {
 
     LinkedList<ChatMessage> messages;
 
-    public GetMessagesResponseBody() {
-        this.messages = new LinkedList<ChatMessage>();
+    public LinkedList<ChatMessage> getMessages() {
+        return messages;
     }
 
-    public GetMessagesResponseBody(LinkedList<ChatMessage> messagesAfter) {
-        this.messages = messagesAfter;
+    public void setMessages(LinkedList<ChatMessage> messages) {
+        this.messages = messages;
     }
 
 }

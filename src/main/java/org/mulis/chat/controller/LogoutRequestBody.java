@@ -2,21 +2,23 @@ package org.mulis.chat.controller;
 
 public class LogoutRequestBody {
 
-    private final String nickname;
-    private final String password;
-
-
-    public LogoutRequestBody(String nickname, int color, String password) {
-        this.nickname = nickname;
-        this.password = password;
-    }
+    private String nickname;
+    private String password;
 
     public String getNickname() {
         return nickname;
     }
 
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
 }

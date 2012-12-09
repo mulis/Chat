@@ -2,27 +2,32 @@ package org.mulis.chat.controller;
 
 public class LoginRequestBody {
 
-    private final String nickname;
-    private final int color;
-    private final String password;
-
-
-    public LoginRequestBody(String nickname, int color, String password) {
-        this.nickname = nickname;
-        this.color = color;
-        this.password = password;
-    }
+    private String nickname;
+    private String password;
+    private String color;
 
     public String getNickname() {
         return nickname;
     }
 
-    public int getColor() {
-        return color;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
 }

@@ -2,11 +2,11 @@ package org.mulis.chat.model;
 
 public class ChatUser {
 
-    private final String nickname;
-    private int color;
+    private String nickname;
+    private String color;
     private boolean logged;
 
-    public ChatUser(String nickname, int color) {
+    public ChatUser(String nickname, String color) {
         this.nickname = nickname;
         this.color = color;
         this.logged = false;
@@ -16,12 +16,16 @@ public class ChatUser {
         return nickname;
     }
 
-    public void setColor(int color) {
-        this.color = color;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
-    public int getColor() {
+    public String getColor() {
         return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public boolean isLogged() {
@@ -36,7 +40,7 @@ public class ChatUser {
     public String toString() {
         return "ChatUser{" +
                 "nickname='" + nickname + "', " +
-                "color=" + Integer.toHexString(color) + "', " +
+                "color=" + color + "', " +
                 "logged='" + logged + "', " +
                 "}";
     }

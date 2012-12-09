@@ -2,20 +2,23 @@ package org.mulis.chat.controller;
 
 public class GetMessagesRequestBody {
 
-    private final String nickname;
-    private final int index;
-
-    public GetMessagesRequestBody(String nickname, int index) {
-        this.nickname = nickname;
-        this.index = index;
-    }
+    private String nickname;
+    private int index;
 
     public String getNickname() {
         return nickname;
     }
 
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public int getIndex() {
         return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
 }

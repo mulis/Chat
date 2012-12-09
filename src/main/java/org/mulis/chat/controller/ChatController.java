@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 
 @Controller
-@RequestMapping("/")
+//@RequestMapping("/")
 public class ChatController {
 
     static Logger logger = Logger.getLogger(ChatController.class.getName());
@@ -41,19 +41,16 @@ public class ChatController {
         if (model.isSigned(request.getNickname())) {
 
             if (model.isLogged(request.getNickname())) {
-
                 result = ChatSystemMessage.USER_ALREADY_LOGGED_IN.toString();
-
             } else {
-
-                model.login(request.getNickname());
                 result = ChatSystemMessage.USER_LOGGED_IN.toString();
-
             }
+
+            model.login(request.getNickname());
 
         } else {
 
-            model.addUser(request.getNickname(), request.getColor());
+            model.signin(request.getNickname(), request.getColor());
             result = ChatSystemMessage.USER_SIGNED_IN_AND_LOGGED_IN.toString();
 
         }
@@ -76,15 +73,12 @@ public class ChatController {
         if (model.isSigned(request.getNickname())) {
 
             if (model.isLogged(request.getNickname())) {
-
-                model.logout(request.getNickname());
                 result = ChatSystemMessage.USER_LOGGED_OUT.toString();
-
             } else {
-
                 result = ChatSystemMessage.USER_ALREADY_LOGGED_OUT.toString();
-
             }
+
+            model.logout(request.getNickname());
 
         } else {
 
@@ -100,7 +94,7 @@ public class ChatController {
     @RequestMapping(value = "/post/message", method = RequestMethod.POST)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public void postMessage(@RequestBody PostMessageRequestBody request) {
+    public void postMessage(@RequestBody final PostMessageRequestBody request) {
 
         logger.debug("Request /post/message");
         logger.debug("request=" + request);
@@ -168,7 +162,8 @@ public class ChatController {
 
             if (model.isLogged(request.getNickname())) {
 
-                response = new GetMessagesResponseBody(model.getMessages(request.getNickname(), request.getIndex()));
+                response = new GetMessagesResponseBody();
+                response.setMessages(model.getMessages(request.getNickname(), request.getIndex()));
 
             } else {
 

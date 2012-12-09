@@ -19,21 +19,53 @@ public class ChatModel {
     private int messageIndex = 0;
 
     ChatModel() {
-        ChatUser user1 = new ChatUser("user1", 0);
+        ChatUser user1 = new ChatUser("user1", "green");
         addUser(user1);
         postMessage(user1, null, "message 1");
     }
 
-    public void addUser(String nickname, int color) {
-        addUser(new ChatUser(nickname, color));
+    public ChatUser getUser(String nickname) {
+        return users.get(nickname);
     }
 
-    public void addUser(ChatUser user) {
+    private void addUser(ChatUser user) {
         users.put(user.getNickname(), user);
     }
 
-    public ChatUser getUser(String nickname) {
-        return users.get(nickname);
+    private void removeUser(ChatUser user) {
+        users.remove(user.getNickname());
+    }
+
+    public void signin(String nickname, String color) {
+        addUser(new ChatUser(nickname, color));
+    }
+
+    public void signout(String nickname) {
+        removeUser(getUser(nickname));
+    }
+
+    public boolean isSigned(String nickname) {
+        return users.containsKey(nickname);
+    }
+
+    public void login(String nickname) {
+        getUser(nickname).setLogged(true);
+    }
+
+    public void logout(String nickname) {
+        getUser(nickname).setLogged(false);
+    }
+
+    public boolean isLogged(String nickname) {
+        return getUser(nickname).isLogged();
+    }
+
+    public ChatUser getAdmin() {
+        return ReservedChatUser.ADMIN.getUser();
+    }
+
+    public ChatUser getAny() {
+        return ReservedChatUser.ANY.getUser();
     }
 
     public ChatMessage postMessage(String senderNickname, String receiverNickname, String text) {
@@ -69,30 +101,6 @@ public class ChatModel {
 
         return massagesAfter;
 
-    }
-
-    public boolean isSigned(String nickname) {
-        return users.containsKey(nickname);
-    }
-
-    public boolean isLogged(String nickname) {
-        return getUser(nickname).isLogged();
-    }
-
-    public void login(String nickname) {
-        getUser(nickname).setLogged(true);
-    }
-
-    public void logout(String nickname) {
-        getUser(nickname).setLogged(false);
-    }
-
-    public ChatUser getAdmin() {
-        return ReservedChatUser.ADMIN.getUser();
-    }
-
-    public ChatUser getAny() {
-        return ReservedChatUser.ANY.getUser();
     }
 
 }
