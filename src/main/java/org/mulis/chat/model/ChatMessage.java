@@ -1,37 +1,30 @@
 package org.mulis.chat.model;
 
-import java.util.Date;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class ChatMessage {
 
-    private final int index;
-    private final Date date;
-    private final ChatUser sender;
-    private final ChatUser receiver;
+    private final String senderNickname;
+    private final String receiverNickname;
     private final String text;
 
-    public ChatMessage(int index, ChatUser sender, ChatUser receiver, String text) {
-        this.index = index;
-        this.date = new Date();
-        this.sender = sender;
-        this.receiver = receiver;
+    @JsonCreator
+    public ChatMessage(
+            @JsonProperty("senderNickname") String senderNickname,
+            @JsonProperty("receiverNickname") String receiverNickname,
+            @JsonProperty("text") String text) {
+        this.senderNickname = senderNickname;
+        this.receiverNickname = receiverNickname;
         this.text = text;
     }
 
-    public int getIndex() {
-        return index;
+    public String getSenderNickname() {
+        return senderNickname;
     }
 
-    public Date getDate() {
-        return date;
-    }
-
-    public ChatUser getSender() {
-        return sender;
-    }
-
-    public ChatUser getReceiver() {
-        return receiver;
+    public String getReceiverNickname() {
+        return receiverNickname;
     }
 
     public String getText() {
@@ -40,11 +33,9 @@ public class ChatMessage {
 
     @Override
     public String toString() {
-        return "ChatMessage{" +
-                "index=" + index + ", " +
-                "date=" + date + ", " +
-                "sender=" + sender + ", " +
-                "receiver=" + receiver + ", " +
+        return "ChatGetMessage{" +
+                "senderNickname=" + senderNickname + ", " +
+                "receiverNickname=" + receiverNickname + ", " +
                 "text='" + text + "'" +
                 "}";
     }

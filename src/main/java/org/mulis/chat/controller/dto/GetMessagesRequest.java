@@ -1,10 +1,10 @@
-package org.mulis.chat.controller;
+package org.mulis.chat.controller.dto;
 
-public class LoginRequestBody {
+public class GetMessagesRequest {
 
     private String nickname;
     private String password;
-    private String color;
+    private int lastMessageIndex;
 
     public String getNickname() {
         return nickname;
@@ -22,12 +22,12 @@ public class LoginRequestBody {
         this.password = password;
     }
 
-    public String getColor() {
-        return color;
+    public int getLastMessageIndex() {
+        return lastMessageIndex;
     }
 
-    public void setColor(String color) {
-        this.color = color;
+    public void setLastMessageIndex(int lastMessageIndex) {
+        this.lastMessageIndex = lastMessageIndex;
     }
 
 }

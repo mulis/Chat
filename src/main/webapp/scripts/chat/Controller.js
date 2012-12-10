@@ -7,21 +7,21 @@ Chat.Controller = function(chat) {
     $(this.chat.element).bind(
         chat.events.LOGIN_ATTEMPT,
         function() {
-            me.login(me.chat.user);
+            me.login(new Chat.Controller.RequestDataObjects.LoginRequestData(me.chat.user));
         }
     )
 
     $(this.chat.element).bind(
-        chat.events.POST_MESSAGE_READY,
+        chat.events.LOGOUT_ATTEMPT,
         function() {
-            me.postMessage(me.chat.model.getPostMessage());
+            me.logout(new Chat.Controller.RequestDataObjects.LogoutRequestData(me.chat.user));
         }
     )
 
     $(this.chat.element).bind(
-        chat.events.SEND_MESSAGE_ATTEMPT,
+        chat.events.POST_MESSAGE_ATTEMPT,
         function(event, message) {
-            me.postMessage(message);
+            me.postMessage(new Chat.Controller.RequestDataObjects.PostMessageRequestData(me.chat.user, message));
         }
     )
 
@@ -39,6 +39,7 @@ Chat.Controller.prototype.login = function(requestData) {
         "processData" : false
     })
     .success(function(data) {
+        me.chat.user.logged = true;
         me.chat.element.trigger(me.chat.events.LOGIN_SUCCESS);
      })
     .error(function(data) {
@@ -61,6 +62,7 @@ Chat.Controller.prototype.logout = function(requestData) {
         "processData" : false
     })
     .success(function(data) {
+        me.chat.user.logged = false;
         me.chat.element.trigger(me.chat.events.LOGOUT_SUCCESS);
      })
     .error(function(data) {
@@ -93,15 +95,17 @@ Chat.Controller.prototype.postMessage = function(requestData) {
 
 }
 
-Chat.Controller.prototype.getMessages = function(nickname, index) {
+Chat.Controller.prototype.getMessages = function(requestData) {
 
     var me = this;
 
-    $.post(
-        me.chat.serviceUrl + "/get/messages",
-        {"nickname" : nickname, "index" : index}
-    )
-    .success(function(data) {
+    $.ajax({
+        "type" : "GET",
+        "url" : me.chat.serviceUrl + "/get/messages",
+        "data" : JSON.stringify(requestData),
+        "contentType" : "application/json",
+        "processData" : false
+    }).success(function(data) {
         me.chat.model.addNewMessages(data);
         me.chat.element.trigger(me.chat.events.GET_MESSAGES_SUCCESS);
      })
@@ -112,3 +116,27 @@ Chat.Controller.prototype.getMessages = function(nickname, index) {
     })
 
 }
+
+Chat.Controller.RequestDataObjects = function() {}
+
+Chat.Controller.RequestDataObjects.LoginRequestData = function(user) {
+    return {
+        nickname : user.nickname,
+        password : user.password
+    };
+}
+
+Chat.Controller.RequestDataObjects.LogoutRequestData = function(user) {
+    return {
+        nickname : user.nickname,
+        password : user.password
+    };
+}
+
+Chat.Controller.RequestDataObjects.PostMessageRequestData = function(user, message) {
+    return {
+        message : message,
+        password : user.password,
+    };
+}
+

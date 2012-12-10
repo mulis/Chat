@@ -3,14 +3,14 @@ Chat = function(elementId, serviceUrl) {
     this.element = $("#" + elementId);
     this.serviceUrl = serviceUrl;
     this.events = {
-        VIEW_TEMPLATE_LOAD : "view-controls-ready",
-        INPUT_MADE : "input-made",
-        LOGIN_ATTEMPT : "login-try",
+        VIEW_TEMPLATE_LOAD : "view-template-load",
+        INPUT_READY : "input-ready",
+        LOGIN_ATTEMPT : "login-attempt",
         LOGIN_SUCCESS : "login-success",
-        LOGOUT_ATTEMPT : "logout-try",
+        LOGOUT_ATTEMPT : "logout-attempt",
         LOGOUT_SUCCESS : "logout-success",
-        SEND_MESSAGE_ATTEMPT : "post-message-ready",
-        SEND_MESSAGE_SUCCESS : "post-message-success",
+        POST_MESSAGE_ATTEMPT : "post-message-attempt",
+        POST_MESSAGE_SUCCESS : "post-message-success",
         GET_MESSAGES_SUCCESS : "get-messages-success",
         RECEIVE_MESSAGES_READY : "receive-messages-ready",
         SERVICE_ERROR : "service-error"
@@ -30,10 +30,11 @@ Chat.User = function() {
     this.password = "";
     this.color = "";
     this.logged = false;
+    this.lastMessageIndex = 0;
 
 }
 
-Chat.SendMessage = function() {
+Chat.Message = function() {
 
     this.senderNickname = "";
     this.receiverNickname = "";

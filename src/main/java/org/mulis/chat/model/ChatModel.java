@@ -2,6 +2,7 @@ package org.mulis.chat.model;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -9,19 +10,21 @@ import java.util.LinkedList;
 @Service
 public class ChatModel {
 
-    private final HashMap<String, ChatUser> users = new HashMap<String, ChatUser>() {{
+    private final HashMap<String, ChatUser> reservedUsers = new HashMap<String, ChatUser>() {{
         put(ReservedChatUser.ADMIN.getUser().getNickname(), ReservedChatUser.ADMIN.getUser());
         put(ReservedChatUser.ANY.getUser().getNickname(), ReservedChatUser.ANY.getUser());
     }};
 
-    private final LinkedList<ChatMessage> messages = new LinkedList<ChatMessage>();
+    private final HashMap<String, ChatUser> users = new HashMap<String, ChatUser>(reservedUsers);
+
+    private final LinkedList<ChatMessageEnvelope> messageEnvelopes = new LinkedList<ChatMessageEnvelope>();
 
     private int messageIndex = 0;
 
     ChatModel() {
-        ChatUser user1 = new ChatUser("user1", "green");
+        ChatUser user1 = new ChatUser("user1", "", "green", false, 0);
         addUser(user1);
-        postMessage(user1, null, "message 1");
+        postMessage(user1.getNickname(), null, "message 1");
     }
 
     public ChatUser getUser(String nickname) {
@@ -32,20 +35,28 @@ public class ChatModel {
         users.put(user.getNickname(), user);
     }
 
-    private void removeUser(ChatUser user) {
-        users.remove(user.getNickname());
+    private void removeUser(String nickname) {
+        users.remove(nickname);
     }
 
-    public void signin(String nickname, String color) {
-        addUser(new ChatUser(nickname, color));
+    public boolean isNicknameReserved(String nickname) {
+        return reservedUsers.containsKey(nickname);
+    }
+
+    public void signin(String nickname, String password, String color) {
+        addUser(new ChatUser(nickname, password, color, true, messageIndex));
     }
 
     public void signout(String nickname) {
-        removeUser(getUser(nickname));
+        removeUser(nickname);
     }
 
     public boolean isSigned(String nickname) {
         return users.containsKey(nickname);
+    }
+
+    public boolean isPasswordCorrect(String nickname, String password) {
+        return getUser(nickname).getPassword().equals(password);
     }
 
     public void login(String nickname) {
@@ -68,38 +79,39 @@ public class ChatModel {
         return ReservedChatUser.ANY.getUser();
     }
 
-    public ChatMessage postMessage(String senderNickname, String receiverNickname, String text) {
-        return postMessage(getUser(senderNickname), getUser(receiverNickname), text);
+    public ChatMessageEnvelope postMessage(String senderNickname, String receiverNickname, String text) {
+        return postMessage(new ChatMessage(senderNickname, receiverNickname, text));
     }
 
-    public ChatMessage postMessage(ChatUser sender, ChatUser receiver, String text) {
-        ChatMessage message = new ChatMessage(messageIndex++, sender, receiver, text);
-        messages.push(message);
-        return message;
+    public ChatMessageEnvelope postMessage(ChatMessage message) {
+        ChatMessageEnvelope envelope = new ChatMessageEnvelope(messageIndex++, new Date(), message);
+        messageEnvelopes.push(envelope);
+        return envelope;
     }
 
-    public LinkedList<ChatMessage> getMessages(String userNickname, int index) {
+    public LinkedList<ChatMessageEnvelope> getMessages(String nickname) {
 
-        LinkedList<ChatMessage> massagesAfter = new LinkedList<ChatMessage>();
-        Iterator<ChatMessage> iterator = messages.iterator();
-        ChatMessage message;
+        ChatUser user = getUser(nickname);
+        LinkedList<ChatMessageEnvelope> userEnvelopes = new LinkedList<ChatMessageEnvelope>();
+        Iterator<ChatMessageEnvelope> iterator = this.messageEnvelopes.iterator();
+        ChatMessageEnvelope envelope;
 
         while (iterator.hasNext()) {
 
-            message = iterator.next();
+            envelope = iterator.next();
 
-            if (message.getIndex() > index) {
-                if (message.getSender().getNickname().equals(userNickname) ||
-                        message.getReceiver().getNickname().equals(userNickname) ||
-                        message.getReceiver().equals(getAny())) {
-                    massagesAfter.push(message);
+            if (envelope.getIndex() > user.getLastMessageIndex()) {
+                if (envelope.getMessage().getSenderNickname().equals(user.getNickname()) ||
+                        envelope.getMessage().getReceiverNickname().equals(user.getNickname()) ||
+                        envelope.getMessage().getReceiverNickname().equals(getAny().getNickname())) {
+                    userEnvelopes.push(envelope);
                 }
             } else {
                 break;
             }
         }
 
-        return massagesAfter;
+        return userEnvelopes;
 
     }
 

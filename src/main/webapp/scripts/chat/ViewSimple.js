@@ -65,24 +65,24 @@ Chat.View.prototype.clearOutput = function() {
     this.controls.output.text("");
 }
 
-Chat.View.prototype.parseInput = function(message) {
+Chat.View.prototype.parseInput = function(input) {
 
-    message = message.trim();
+    input = input.trim();
 
-    if (message.search(".") == 0) {
-        this.parseCommand(message);
+    if (input.search("\\.") == 0) {
+        this.parseCommand(input);
     }
     else {
-        this.parseSendMessage(message);
+        this.parseSendMessage(input);
     }
 
 }
 
-Chat.View.prototype.parseCommand = function(message) {
+Chat.View.prototype.parseCommand = function(input) {
 
     try {
 
-        var parts = message.split(" ");
+        var parts = input.split(" ");
 
         if (parts[0] == ".help") {
 
@@ -110,7 +110,7 @@ Chat.View.prototype.parseCommand = function(message) {
                     throw("Wrong login command arguments number.");
                 }
 
-                this.chat.element.trigger(me.chat.events.LOGIN_ATTEMPT);
+                this.chat.element.trigger(this.chat.events.LOGIN_ATTEMPT);
 
             }
             else {
@@ -122,7 +122,7 @@ Chat.View.prototype.parseCommand = function(message) {
         else if (parts[0] == ".logout") {
 
             if (this.chat.user.logged == true) {
-                this.chat.element.trigger(me.chat.events.LOGOUT_ATTEMPT);
+                this.chat.element.trigger(this.chat.events.LOGOUT_ATTEMPT);
             }
             else {
                 throw("You must login before logout.");
@@ -132,27 +132,44 @@ Chat.View.prototype.parseCommand = function(message) {
 
     }
     catch (exception) {
-        this.controls.output.append(exception);
+        this.outputException(exception);
     }
 
 }
 
-Chat.View.prototype.parseSendMessage = function(message) {
+Chat.View.prototype.parseSendMessage = function(input) {
 
-    var sendMessage = new Chat.SendMessage();
+    try {
 
-    if (message.search("@") == 0) {
-        sendMessage.senderNickname = this.user.nickname;
-        sendMessage.receiverNickname = message.split(" ")[0];
-        sendMessage.text = message.substring(this.sendMessage.receiverNickname.length + 1);
+        if (this.chat.user.logged == true) {
+
+            var message = new Chat.Message();
+
+            if (input.search("@") == 0) {
+                message.senderNickname = this.chat.user.nickname;
+                message.receiverNickname = input.split(" ")[0].substring(1);
+                message.text = input.substring(message.receiverNickname.length + 1);
+            }
+            else {
+                message.senderNickname = this.chat.user.nickname;
+                message.receiverNickname = "";
+                message.text = input;
+            }
+
+            this.chat.element.trigger(this.chat.events.POST_MESSAGE_ATTEMPT, message);
+
+        }
+        else {
+            throw("You must login before post message.");
+        }
+
     }
-    else {
-        sendMessage.senderNickname = this.user.nickname;
-        sendMessage.receiverNickname = "";
-        sendMessage.text = message;
+    catch (exception) {
+        this.outputException(exception);
     }
-
-    this.chat.element.trigger(me.chat.events.SEND_MESSAGE_ATTEMPT, sendMessage);
 
 }
 
+Chat.View.prototype.outputException = function(exception) {
+    this.controls.output.append("<div>" + exception + "</div>");
+}
