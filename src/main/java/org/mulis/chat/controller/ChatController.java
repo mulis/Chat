@@ -24,9 +24,10 @@ public class ChatController {
     private ChatModel model;
 
     @RequestMapping(value = "/test", method = RequestMethod.GET)
-    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String test() {
+    public
+    @ResponseBody
+    String test() {
 
         logger.debug("Request /test");
 
@@ -35,9 +36,10 @@ public class ChatController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ChatMessageEnvelope login(@RequestBody final LoginRequest request) {
+    public
+    @ResponseBody
+    String login(@RequestBody final LoginRequest request) throws ForbiddenException {
 
         logger.debug("Request /login");
         logger.debug("request: " + request);
@@ -45,34 +47,37 @@ public class ChatController {
         String result = ChatSystemMessage.SYSTEM_STATE_UNKNOWN.toString();
 
         if (model.isNicknameReserved(request.getNickname())) {
-            result = ChatSystemMessage.USER_NICKNAME_IS_RESERVED.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
         } else if (!model.isSigned(request.getNickname())) {
+            result = ChatSystemMessage.USER_SIGNED_IN_AND_LOGGED_IN.format(request.getNickname());
             model.signin(request.getNickname(), request.getPassword(), request.getColor());
-            result = ChatSystemMessage.USER_SIGNED_IN_AND_LOGGED_IN.toString();
         } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
-            result = ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.format(request.getNickname()));
         } else {
 
             if (model.isLogged(request.getNickname())) {
-                result = ChatSystemMessage.USER_ALREADY_LOGGED_IN.toString();
+                result = ChatSystemMessage.USER_ALREADY_LOGGED_IN.format(request.getNickname());
             } else {
-                result = ChatSystemMessage.USER_LOGGED_IN.toString();
+                result = ChatSystemMessage.USER_LOGGED_IN.format(request.getNickname());
             }
 
             model.login(request.getNickname());
 
         }
 
+        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), result);
+
         logger.debug("result: " + result);
 
-        return model.postMessage(model.getAdmin().getNickname(), request.getNickname(), result);
+        return result;
 
     }
 
     @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ChatMessageEnvelope logout(@RequestBody final LogoutRequest request) {
+    public
+    @ResponseBody
+    String logout(@RequestBody final LogoutRequest request) throws ForbiddenException {
 
         logger.debug("Request /logout");
         logger.debug("request: " + request);
@@ -80,33 +85,36 @@ public class ChatController {
         String result = ChatSystemMessage.SYSTEM_STATE_UNKNOWN.toString();
 
         if (model.isNicknameReserved(request.getNickname())) {
-            result = ChatSystemMessage.USER_NICKNAME_IS_RESERVED.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
         } else if (!model.isSigned(request.getNickname())) {
-            result = ChatSystemMessage.USER_NOT_SIGNED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
         } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
-            result = ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.format(request.getNickname()));
         } else {
 
             if (model.isLogged(request.getNickname())) {
-                result = ChatSystemMessage.USER_LOGGED_OUT.toString();
+                result = ChatSystemMessage.USER_LOGGED_OUT.format(request.getNickname());
             } else {
-                result = ChatSystemMessage.USER_ALREADY_LOGGED_OUT.toString();
+                result = ChatSystemMessage.USER_ALREADY_LOGGED_OUT.format(request.getNickname());
             }
 
             model.logout(request.getNickname());
 
         }
 
+        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), result);
+
         logger.debug("result: " + result);
 
-        return model.postMessage(model.getAdmin().getNickname(), request.getNickname(), result);
+        return result;
 
     }
 
     @RequestMapping(value = "/post/message", method = RequestMethod.POST)
-    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public ChatMessageEnvelope postMessage(@RequestBody final PostMessageRequest request) {
+    public
+    @ResponseBody
+    String postMessage(@RequestBody final PostMessageRequest request) throws ForbiddenException {
 
         logger.debug("Request /post/message");
         logger.debug("request: " + request);
@@ -114,32 +122,35 @@ public class ChatController {
         String result = ChatSystemMessage.SYSTEM_STATE_UNKNOWN.toString();
 
         if (model.isNicknameReserved(request.getMessage().getSenderNickname())) {
-            result = ChatSystemMessage.SENDER_NICKNAME_IS_RESERVED.toString();
+            throw new ForbiddenException(ChatSystemMessage.SENDER_NICKNAME_IS_RESERVED.format(request.getMessage().getSenderNickname()));
         } else if (!model.isSigned(request.getMessage().getSenderNickname())) {
-            result = ChatSystemMessage.SENDER_NOT_SIGNED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.SENDER_NOT_SIGNED_IN.format(request.getMessage().getSenderNickname()));
         } else if (!model.isPasswordCorrect(request.getMessage().getSenderNickname(), request.getPassword())) {
-            result = ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.format(request.getMessage().getSenderNickname()));
         } else if (!model.isLogged(request.getMessage().getSenderNickname())) {
-            result = ChatSystemMessage.SENDER_NOT_LOGGED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.SENDER_NOT_LOGGED_IN.format(request.getMessage().getSenderNickname()));
         } else if (!model.isSigned(request.getMessage().getReceiverNickname())) {
-            result = ChatSystemMessage.RECEIVER_NOT_SIGNED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.RECEIVER_NOT_SIGNED_IN.format(request.getMessage().getReceiverNickname()));
         } else if (!model.isLogged(request.getMessage().getReceiverNickname())) {
-            result = ChatSystemMessage.RECEIVER_NOT_LOGGED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.RECEIVER_NOT_LOGGED_IN.format(request.getMessage().getReceiverNickname()));
         } else {
+            result = ChatSystemMessage.USER_POST_MESSAGE.format(request.getMessage().getSenderNickname());
             model.postMessage(request.getMessage());
-            result = ChatSystemMessage.USER_POST_MESSAGE.toString();
         }
+
+        model.postMessage(model.getAdmin().getNickname(), request.getMessage().getSenderNickname(), result);
 
         logger.debug("result: " + result);
 
-        return model.postMessage(model.getAdmin().getNickname(), request.getMessage().getSenderNickname(), result);
+        return result;
 
     }
 
     @RequestMapping(value = "/get/messages", method = RequestMethod.GET)
-    @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public LinkedList<ChatMessageEnvelope> getMessages(@RequestBody final GetMessagesRequest request) {
+    public
+    @ResponseBody
+    LinkedList<ChatMessageEnvelope> getMessages(@RequestBody final GetMessagesRequest request) {
 
         logger.debug("Request /get/messages");
         logger.debug("request: " + request);
@@ -149,23 +160,30 @@ public class ChatController {
         LinkedList<ChatMessageEnvelope> messages = new LinkedList<ChatMessageEnvelope>();
 
         if (model.isNicknameReserved(request.getNickname())) {
-            result = ChatSystemMessage.USER_NICKNAME_IS_RESERVED.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
         } else if (!model.isSigned(request.getNickname())) {
-            result = ChatSystemMessage.USER_NOT_SIGNED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NOT_SIGNED_IN.format(request.getNickname()));
         } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
-            result = ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_PASSWORD_NOT_CORRECT.format(request.getNickname()));
         } else if (!model.isLogged(request.getNickname())) {
-            result = ChatSystemMessage.USER_NOT_LOGGED_IN.toString();
+            throw new ForbiddenException(ChatSystemMessage.USER_NOT_LOGGED_IN.format(request.getNickname()));
         } else {
-            result = ChatSystemMessage.USER_GET_MESSAGES.toString();
+            result = ChatSystemMessage.USER_GET_MESSAGES.format(request.getNickname());
         }
-
-        logger.debug("result: " + result);
 
         model.postMessage(model.getAdmin().getNickname(), request.getNickname(), result);
 
+        logger.debug("result: " + result);
+
         return model.getMessages(request.getNickname());
 
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    @ResponseBody
+    public String handleForbiddenException(ForbiddenException exception) {
+        return exception.getMessage();
     }
 
 }

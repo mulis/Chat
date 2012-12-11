@@ -11,8 +11,8 @@ Chat = function(elementId, serviceUrl) {
         LOGOUT_SUCCESS : "logout-success",
         POST_MESSAGE_ATTEMPT : "post-message-attempt",
         POST_MESSAGE_SUCCESS : "post-message-success",
+        GET_MESSAGES_ATTEMPT : "get-messages-attempt",
         GET_MESSAGES_SUCCESS : "get-messages-success",
-        RECEIVE_MESSAGES_READY : "receive-messages-ready",
         SERVICE_ERROR : "service-error"
     };
 

@@ -7,35 +7,46 @@ Chat.Controller = function(chat) {
     $(this.chat.element).bind(
         chat.events.LOGIN_ATTEMPT,
         function() {
-            me.login(new Chat.Controller.RequestDataObjects.LoginRequestData(me.chat.user));
+            me.login(me.chat.user);
         }
     )
 
     $(this.chat.element).bind(
         chat.events.LOGOUT_ATTEMPT,
         function() {
-            me.logout(new Chat.Controller.RequestDataObjects.LogoutRequestData(me.chat.user));
+            me.logout(me.chat.user);
         }
     )
 
     $(this.chat.element).bind(
         chat.events.POST_MESSAGE_ATTEMPT,
         function(event, message) {
-            me.postMessage(new Chat.Controller.RequestDataObjects.PostMessageRequestData(me.chat.user, message));
+            me.postMessage(me.chat.user, message);
+        }
+    )
+
+    $(this.chat.element).bind(
+        chat.events.GET_MESSAGES_ATTEMPT,
+        function(event, message) {
+            me.getMessages(me.chat.user);
         }
     )
 
 }
 
-Chat.Controller.prototype.login = function(requestData) {
+Chat.Controller.prototype.login = function(user) {
 
     var me = this;
 
     $.ajax({
         "type" : "POST",
         "url" : me.chat.serviceUrl + "/login",
-        "data" : JSON.stringify(requestData),
+        "data" : JSON.stringify({
+            nickname : user.nickname,
+            password : user.password
+        }),
         "contentType" : "application/json",
+        "dataType" : "text",
         "processData" : false
     })
     .success(function(data) {
@@ -50,15 +61,19 @@ Chat.Controller.prototype.login = function(requestData) {
 
 }
 
-Chat.Controller.prototype.logout = function(requestData) {
+Chat.Controller.prototype.logout = function(user) {
 
     var me = this;
 
     $.ajax({
         "type" : "POST",
         "url" : me.chat.serviceUrl + "/logout",
-        "data" : JSON.stringify(requestData),
+        "data" : JSON.stringify({
+            nickname : user.nickname,
+            password : user.password
+        }),
         "contentType" : "application/json",
+        "dataType" : "text",
         "processData" : false
     })
     .success(function(data) {
@@ -73,15 +88,19 @@ Chat.Controller.prototype.logout = function(requestData) {
 
 }
 
-Chat.Controller.prototype.postMessage = function(requestData) {
+Chat.Controller.prototype.postMessage = function(user, message) {
 
     var me = this;
 
     $.ajax({
         "type" : "POST",
         "url" : me.chat.serviceUrl + "/post/message",
-        "data" : JSON.stringify(requestData),
+        "data" : JSON.stringify({
+            message : message,
+            password : user.password,
+        }),
         "contentType" : "application/json",
+        "dataType" : "text",
         "processData" : false
     })
     .success(function(data) {
@@ -95,15 +114,20 @@ Chat.Controller.prototype.postMessage = function(requestData) {
 
 }
 
-Chat.Controller.prototype.getMessages = function(requestData) {
+Chat.Controller.prototype.getMessages = function(user) {
 
     var me = this;
 
     $.ajax({
         "type" : "GET",
         "url" : me.chat.serviceUrl + "/get/messages",
-        "data" : JSON.stringify(requestData),
+        "data" : JSON.stringify({
+            nickname : user.nickname,
+            password : user.password,
+            lastMessageIndex : user.lastMessageIndex
+        }),
         "contentType" : "application/json",
+        "dataType" : "json",
         "processData" : false
     }).success(function(data) {
         me.chat.model.addNewMessages(data);
@@ -115,28 +139,5 @@ Chat.Controller.prototype.getMessages = function(requestData) {
     .complete(function(data) {
     })
 
-}
-
-Chat.Controller.RequestDataObjects = function() {}
-
-Chat.Controller.RequestDataObjects.LoginRequestData = function(user) {
-    return {
-        nickname : user.nickname,
-        password : user.password
-    };
-}
-
-Chat.Controller.RequestDataObjects.LogoutRequestData = function(user) {
-    return {
-        nickname : user.nickname,
-        password : user.password
-    };
-}
-
-Chat.Controller.RequestDataObjects.PostMessageRequestData = function(user, message) {
-    return {
-        message : message,
-        password : user.password,
-    };
 }
 
