@@ -1,6 +1,6 @@
 package org.mulis.chat.controller;
 
-public enum ChatSystemMessage {
+public enum ChatStatus {
 
     USER_SIGNED_IN("User %s signed in."),
     USER_SIGNED_OUT("User %s signed out."),
@@ -21,6 +21,9 @@ public enum ChatSystemMessage {
     USER_SIGNED_IN_AND_LOGGED_IN("User %s signed in and logged in."),
     USER_SIGNED_OUT_AND_LOGGED_OUT("User %s signed out and logged out."),
 
+    USER_PASSWORD_CHANGED("User %s password changed"),
+    USER_COLOR_CHANGED("User %s color changed"),
+
     SENDER_NOT_SIGNED_IN("Sender %s not signed in."),
     SENDER_NOT_LOGGED_IN("Sender %s not logged in."),
     RECEIVER_NOT_SIGNED_IN("Receiver %s not signed in."),
@@ -31,19 +34,23 @@ public enum ChatSystemMessage {
 
     SYSTEM_STATE_UNKNOWN("System state unknown.");
 
-    private final String message;
+    private final String text;
 
-    ChatSystemMessage(String message) {
-        this.message = message;
+    ChatStatus(String text) {
+        this.text = text;
+    }
+
+    public String getText() {
+        return text;
     }
 
     public String format(Object... arguments) {
-        return String.format(message, arguments);
+        return String.format(text, arguments);
     }
 
     @Override
     public String toString() {
-        return message;
+        return text;
     }
 
 }

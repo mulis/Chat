@@ -12,6 +12,13 @@ Chat.Controller = function(chat) {
     )
 
     $(this.chat.element).bind(
+        chat.events.LOGIN_SUCCESS,
+        function() {
+            me.chat.timer.start();
+        }
+    )
+
+    $(this.chat.element).bind(
         chat.events.LOGOUT_ATTEMPT,
         function() {
             me.logout(me.chat.user);
@@ -50,10 +57,17 @@ Chat.Controller.prototype.login = function(user) {
         "processData" : false
     })
     .success(function(data) {
-        me.chat.user.logged = true;
-        me.chat.element.trigger(me.chat.events.LOGIN_SUCCESS);
+        var result = JSON.parse(data);
+        if (result.code < 20) {
+            me.chat.user.logged = true;
+            me.chat.element.trigger(me.chat.events.LOGIN_SUCCESS);
+        }
+        else {
+            me.chat.element.trigger(me.chat.events.LOGIN_FAILURE);
+        }
      })
     .error(function(data) {
+        me.chat.timer.increaseInterval();
         me.chat.element.trigger(me.chat.events.SERVICE_ERROR);
     })
     .complete(function(data) {
@@ -77,10 +91,18 @@ Chat.Controller.prototype.logout = function(user) {
         "processData" : false
     })
     .success(function(data) {
-        me.chat.user.logged = false;
-        me.chat.element.trigger(me.chat.events.LOGOUT_SUCCESS);
+        var result = JSON.parse(data);
+        if (result.code < 20) {
+            me.chat.user.logged = false;
+            me.chat.timer.stop();
+            me.chat.element.trigger(me.chat.events.LOGOUT_SUCCESS);
+        }
+        else {
+            me.chat.element.trigger(me.chat.events.LOGOUT_FAILURE);
+        }
      })
     .error(function(data) {
+        me.chat.timer.increaseInterval();
         me.chat.element.trigger(me.chat.events.SERVICE_ERROR);
     })
     .complete(function(data) {
@@ -104,13 +126,22 @@ Chat.Controller.prototype.postMessage = function(user, message) {
         "processData" : false
     })
     .success(function(data) {
-        me.chat.element.trigger(me.chat.events.POST_MESSAGE_SUCCESS);
+        var result = JSON.parse(data);
+        if (result.code < 20) {
+            me.chat.element.trigger(me.chat.events.POST_MESSAGE_SUCCESS);
+        }
+        else {
+            me.chat.element.trigger(me.chat.events.POST_MESSAGE_FAILURE);
+        }
      })
     .error(function(data) {
+        me.chat.timer.increaseInterval();
         me.chat.element.trigger(me.chat.events.SERVICE_ERROR);
     })
     .complete(function(data) {
     })
+
+    me.chat.timer.setMinInterval();
 
 }
 
@@ -119,21 +150,34 @@ Chat.Controller.prototype.getMessages = function(user) {
     var me = this;
 
     $.ajax({
-        "type" : "GET",
+        "type" : "POST",
         "url" : me.chat.serviceUrl + "/get/messages",
         "data" : JSON.stringify({
             nickname : user.nickname,
-            password : user.password,
-            lastMessageIndex : user.lastMessageIndex
+            password : user.password
         }),
         "contentType" : "application/json",
-        "dataType" : "json",
+        "dataType" : "text",
         "processData" : false
     }).success(function(data) {
-        me.chat.model.addNewMessages(data);
-        me.chat.element.trigger(me.chat.events.GET_MESSAGES_SUCCESS);
+        var result = JSON.parse(data);
+        if (result.code < 20) {
+            if (result.messages.length > 0) {
+                me.chat.model.addNewMessages(result.messages);
+                me.chat.timer.setMinInterval();
+            }
+            else {
+                me.chat.timer.increaseInterval();
+            }
+            me.chat.element.trigger(me.chat.events.GET_MESSAGES_SUCCESS);
+        }
+        else {
+            me.chat.timer.increaseInterval();
+            me.chat.element.trigger(me.chat.events.GET_MESSAGE_FAILURE);
+        }
      })
     .error(function(data) {
+        me.chat.timer.increaseInterval();
         me.chat.element.trigger(me.chat.events.SERVICE_ERROR);
     })
     .complete(function(data) {

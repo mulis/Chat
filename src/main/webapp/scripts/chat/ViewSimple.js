@@ -14,7 +14,7 @@ Chat.View = function(chat) {
     );
 
     $(this.chat.element).bind(
-        chat.events.RECEIVE_MESSAGES_READY,
+        chat.events.GET_MESSAGES_SUCCESS,
         function(aEvent) {
             me.updateView();
         }
@@ -56,7 +56,7 @@ Chat.View.prototype.updateView = function() {
     var output = this.controls.output;
     var newMessages = this.chat.model.getNewMessages();
     for (var i = 0; i < newMessages.length; i++) {
-        output.append(newMessages[i] + "\n");
+        output.append("<div>" + newMessages[i] + "</div>");
     }
     //output.scrollTop(output[0].scrollHeight - output.height());
 }

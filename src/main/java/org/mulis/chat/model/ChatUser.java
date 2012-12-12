@@ -59,11 +59,11 @@ public class ChatUser {
     @Override
     public String toString() {
         return "ChatUser{" +
-                "nickname='" + nickname + "', " +
-                "password='" + password + "', " +
+                "nickname=" + nickname + ", " +
+                "password=" + password + ", " +
                 "color=" + color + "', " +
-                "logged='" + logged + "', " +
-                "lastMessageIndex='" + lastMessageIndex + "'" +
+                "logged=" + logged + ", " +
+                "lastMessageIndex=" + lastMessageIndex +
                 "}";
     }
 

@@ -2,13 +2,13 @@ package org.mulis.chat.model;
 
 import java.util.Date;
 
-public class ChatMessageEnvelope {
+public class ChatPostedMessage {
 
     private final int index;
     private final Date date;
     private final ChatMessage message;
 
-    public ChatMessageEnvelope(int index, Date date, ChatMessage message) {
+    public ChatPostedMessage(int index, Date date, ChatMessage message) {
         this.index = index;
         this.date = date;
         this.message = message;
@@ -24,6 +24,15 @@ public class ChatMessageEnvelope {
 
     public ChatMessage getMessage() {
         return message;
+    }
+
+    @Override
+    public String toString() {
+        return "ChatPostedMessage{" +
+                "index=" + index + ", " +
+                "date=" + date + ", " +
+                "message=" + message +
+                "}";
     }
 
 }
