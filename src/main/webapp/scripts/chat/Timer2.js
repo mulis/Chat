@@ -34,12 +34,25 @@ Chat.Timer.prototype.stop = function() {
 
 }
 
+ Chat.Timer.prototype.restart = function() {
+
+     this.stop();
+     this.start();
+
+ }
+
 Chat.Timer.prototype.increaseInterval = function() {
 
     var nextInterval = this.interval * 2;
     this.interval = (nextInterval > this.maxInterval) ? this.maxInterval : nextInterval;
-    this.stop();
-    this.start();
+    this.restart();
+
+}
+
+Chat.Timer.prototype.increaseIntervalToMax = function() {
+
+     this.interval = this.maxInterval;
+     this.restart();
 
 }
 
@@ -47,23 +60,13 @@ Chat.Timer.prototype.decreaseInterval = function() {
 
     var nextInterval = this.interval / 2;
     this.interval = (nextInterval < this.minInterval) ? this.minInterval : nextInterval;
-    this.stop();
-    this.start();
+    this.restart();
 
 }
 
-Chat.Timer.prototype.setMinInterval = function() {
+Chat.Timer.prototype.decreaseIntervalToMin = function() {
 
     this.interval = this.minInterval;
-    this.stop();
-    this.start();
-
-}
-
-Chat.Timer.prototype.setMaxInterval = function() {
-
-    this.interval = this.maxInterval;
-    this.stop();
-    this.start();
+    this.restart();
 
 }

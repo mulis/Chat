@@ -24,11 +24,11 @@ public class ChatUser {
         this.nickname = nickname;
     }
 
-    public String getPassword() {
+    String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    void setPassword(String password) {
         this.password = password;
     }
 
@@ -48,21 +48,21 @@ public class ChatUser {
         this.logged = logged;
     }
 
-    public int getLastMessageIndex() {
+    int getLastMessageIndex() {
         return lastMessageIndex;
     }
 
-    public void setLastMessageIndex(int lastMessageIndex) {
+    void setLastMessageIndex(int lastMessageIndex) {
         this.lastMessageIndex = lastMessageIndex;
     }
 
     @Override
     public String toString() {
         return "ChatUser{" +
-                "nickname=" + nickname + ", " +
+                "nickname=" + getNickname() + ", " +
                 "password=" + password + ", " +
-                "color=" + color + "', " +
-                "logged=" + logged + ", " +
+                "color=" + getColor() + "', " +
+                "logged=" + isLogged() + ", " +
                 "lastMessageIndex=" + lastMessageIndex +
                 "}";
     }

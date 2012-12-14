@@ -54,6 +54,8 @@ public class ChatController {
             response.setStatus(ChatStatus.USER_SIGNED_IN_AND_LOGGED_IN.format(request.getNickname()));
 
             model.signin(request.getNickname(), request.getPassword(), request.getColor());
+            model.login(request.getNickname());
+            model.postMessage(model.getAdmin().getNickname(), model.getAny().getNickname(), response.getStatus());
 
         } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
 
@@ -75,10 +77,12 @@ public class ChatController {
             }
 
             model.login(request.getNickname());
+            model.changeColor(request.getNickname(), request.getColor());
+            model.postMessage(model.getAdmin().getNickname(), model.getAny().getNickname(), response.getStatus());
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
 
         logger.debug("response: " + response);
 
@@ -126,10 +130,11 @@ public class ChatController {
             }
 
             model.logout(request.getNickname());
+            model.postMessage(model.getAdmin().getNickname(), model.getAny().getNickname(), response.getStatus());
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
 
         logger.debug("response: " + response);
 
@@ -176,7 +181,7 @@ public class ChatController {
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
 
         logger.debug("response: " + response);
 
@@ -223,7 +228,7 @@ public class ChatController {
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
 
         logger.debug("response: " + response);
 
@@ -280,7 +285,7 @@ public class ChatController {
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getMessage().getSenderNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getMessage().getSenderNickname(), response.getStatus());
 
         logger.debug("response: " + response);
 
@@ -288,12 +293,12 @@ public class ChatController {
 
     }
 
-    @RequestMapping(value = "/get/messages", method = RequestMethod.POST)
+    @RequestMapping(value = "/get/messages/new", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public GetMessagesResponse getMessages(@RequestBody final GetMessagesRequest request) {
+    public GetMessagesResponse getNewMessages(@RequestBody final GetMessagesRequest request) {
 
-        logger.debug("Request /get/postedMessages");
+        logger.debug("Request /get/messages/new");
         logger.debug("request: " + request);
 
         GetMessagesResponse response = new GetMessagesResponse();
@@ -325,9 +330,9 @@ public class ChatController {
 
         }
 
-        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
 
-        response.setMessages(model.getMessages(request.getNickname()));
+        response.setMessages(model.getNewMessages(request.getNickname()));
 
         logger.debug("response: " + response);
 
@@ -335,17 +340,96 @@ public class ChatController {
 
     }
 
-    @RequestMapping(value = "/get/messages/{nickname}", method = RequestMethod.GET)
+    @RequestMapping(value = "/get/users", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public GetMessagesResponse getMessagesTest(@PathVariable String nickname) {
+    public GetUsersResponse getUsers(@RequestBody final GetUsersRequest request) {
 
-        logger.debug("Request /get/messages/{nickname}");
+        logger.debug("Request /get/postedMessages");
+        logger.debug("request: " + request);
 
-        GetMessagesResponse response = new GetMessagesResponse();
-        response.setCode(0);
-        response.setStatus("");
-        response.setMessages(model.getMessages(nickname));
+        GetUsersResponse response = new GetUsersResponse();
+
+        if (model.isNicknameReserved(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
+
+        } else if (!model.isSigned(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NOT_SIGNED_IN.format(request.getNickname()));
+
+        } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_PASSWORD_NOT_CORRECT.format(request.getNickname()));
+
+        } else if (!model.isLogged(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NOT_LOGGED_IN.format(request.getNickname()));
+
+        } else {
+
+            response.setCode(ChatErrorCode.OK.getCode());
+            response.setStatus(ChatStatus.USER_GET_USERS.format(request.getNickname()));
+
+        }
+
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+
+        response.setUsers(model.getUsers());
+
+        logger.debug("response: " + response);
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/all", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetAllResponse getUpdates(@RequestBody final GetUpdatesRequest request) {
+
+        logger.debug("Request /get/all");
+        logger.debug("request: " + request);
+
+        GetAllResponse response = new GetAllResponse();
+
+        if (model.isNicknameReserved(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NICKNAME_IS_RESERVED.format(request.getNickname()));
+
+        } else if (!model.isSigned(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NOT_SIGNED_IN.format(request.getNickname()));
+
+        } else if (!model.isPasswordCorrect(request.getNickname(), request.getPassword())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_PASSWORD_NOT_CORRECT.format(request.getNickname()));
+
+        } else if (!model.isLogged(request.getNickname())) {
+
+            response.setCode(ChatErrorCode.STOP.getCode());
+            response.setStatus(ChatStatus.USER_NOT_LOGGED_IN.format(request.getNickname()));
+
+        } else {
+
+            response.setCode(ChatErrorCode.OK.getCode());
+            response.setStatus(ChatStatus.USER_GET_USERS.format(request.getNickname()));
+
+        }
+
+//        model.postMessage(model.getAdmin().getNickname(), request.getNickname(), response.getStatus());
+
+        response.setMessages(model.getNewMessages(request.getNickname()));
+        response.setUsers(model.getUsers());
+
+        logger.debug("response: " + response);
 
         return response;
 
@@ -354,7 +438,7 @@ public class ChatController {
     @RequestMapping(value = "/get/messages/all", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    public GetMessagesResponse getMessagesTest() {
+    public GetMessagesResponse getMessagesAll() {
 
         logger.debug("Request /get/messages/all");
 
@@ -362,6 +446,86 @@ public class ChatController {
         response.setCode(0);
         response.setStatus("");
         response.setMessages(model.getMessages());
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/messages/{nickname}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetMessagesResponse getMessagesUser(@PathVariable String nickname) {
+
+        logger.debug("Request /get/messages/{nickname}");
+
+        GetMessagesResponse response = new GetMessagesResponse();
+        response.setCode(0);
+        response.setStatus("");
+        response.setMessages(model.getNewMessages(nickname));
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/messages/{nickname}/all", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetMessagesResponse getMessagesUserAll(@PathVariable String nickname) {
+
+        logger.debug("Request /get/messages/{nickname}/all");
+
+        GetMessagesResponse response = new GetMessagesResponse();
+        response.setCode(0);
+        response.setStatus("");
+        response.setMessages(model.getMessages(nickname, 0, model.getMessageIndex()));
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/messages/{nickname}/{fromId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetMessagesResponse getMessagesUserFrom(@PathVariable String nickname, @PathVariable int fromId) {
+
+        logger.debug("Request /get/messages/{fromId}");
+
+        GetMessagesResponse response = new GetMessagesResponse();
+        response.setCode(0);
+        response.setStatus("");
+        response.setMessages(model.getMessages(nickname, fromId, model.getMessageIndex()));
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/messages/{nickname}/{fromId}/{toId}", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetMessagesResponse getMessagesUserFromTo(@PathVariable String nickname, @PathVariable int fromId, @PathVariable int toId) {
+
+        logger.debug("Request /get/messages/{nickname}/{fromId}/{toId}");
+
+        GetMessagesResponse response = new GetMessagesResponse();
+        response.setCode(0);
+        response.setStatus("");
+        response.setMessages(model.getMessages(nickname, fromId, toId));
+
+        return response;
+
+    }
+
+    @RequestMapping(value = "/get/users/all", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public GetUsersResponse getUsersAll() {
+
+        logger.debug("Request /get/users/all");
+
+        GetUsersResponse response = new GetUsersResponse();
+        response.setCode(0);
+        response.setStatus("");
+        response.setUsers(model.getUsers());
 
         return response;
 

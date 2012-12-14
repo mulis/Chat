@@ -14,16 +14,44 @@ Chat.View = function(chat) {
     );
 
     $(this.chat.element).bind(
+        chat.events.LOGIN_SUCCESS,
+        function(aEvent) {
+            me.clearMessageInput();
+        }
+    );
+
+    $(this.chat.element).bind(
+        chat.events.LOGOUT_SUCCESS,
+        function(aEvent) {
+            me.clearMessageInput();
+        }
+    );
+
+    $(this.chat.element).bind(
+        chat.events.POST_MESSAGE_SUCCESS,
+        function(aEvent) {
+//            me.clearMessageInput();
+        }
+    );
+
+    $(this.chat.element).bind(
         chat.events.GET_MESSAGES_SUCCESS,
         function(aEvent) {
-            me.updateView();
+            me.updateMessagesView();
+        }
+    );
+
+    $(this.chat.element).bind(
+        chat.events.GET_USERS_SUCCESS,
+        function(aEvent) {
+            me.updateUsersView();
         }
     );
 
     $(this.chat.element).bind(
         chat.events.SERVICE_ERROR,
         function(aEvent) {
-            me.updateView();
+            me.updateMessagesView();
         }
     );
 
@@ -35,34 +63,44 @@ Chat.View.prototype.initControls = function() {
 
     var me = this;
 
-    this.controls = {
-         input : this.chat.element.find(".chat-input"),
-         output : this.chat.element.find(".chat-output")
-     };
+    this.controls = {};
+    this.controls.messageInput = this.chat.element.find(".chat-message-input");
+    this.controls.messagesOutput = this.chat.element.find(".chat-messages-output");
+    this.controls.usersOutput = this.chat.element.find(".chat-users-output");
+    this.controls.statusOutput = this.chat.element.find(".chat-status-output");
 
-    this.controls.input.bind(
+    this.controls.messageInput.bind(
         "keypress",
         function(aEvent) {
             var keycode = (aEvent.keyCode ? aEvent.keyCode : aEvent.which);
             if(keycode == "13"){
-                me.parseInput(me.controls.input.val());
+                me.parseInput(me.controls.messageInput.val());
+                aEvent.preventDefault();
             }
         }
     );
 
 }
 
-Chat.View.prototype.updateView = function() {
-    var output = this.controls.output;
-    var newMessages = this.chat.model.getNewMessages();
-    for (var i = 0; i < newMessages.length; i++) {
-        output.append("<div>" + newMessages[i] + "</div>");
-    }
-    //output.scrollTop(output[0].scrollHeight - output.height());
+Chat.View.prototype.clearMessageInput = function() {
+    this.controls.messageInput.val("");
 }
 
-Chat.View.prototype.clearOutput = function() {
-    this.controls.output.text("");
+
+Chat.View.prototype.updateMessagesView = function() {
+    var newMessages = this.chat.model.getNewMessages();
+    for (var i = 0; i < newMessages.length; i++) {
+        this.printMessage(this.parseOutputMessage(newMessages[i]));
+    }
+//    this.controls.messagesOutput.scrollTop(this.controls.messagesOutput[0].scrollHeight);
+}
+
+Chat.View.prototype.printMessage = function(message) {
+    this.controls.messagesOutput.append("<div>" + message + "</div>");
+}
+
+Chat.View.prototype.clearMessagesOutput = function() {
+    this.controls.messagesOutput.text("");
 }
 
 Chat.View.prototype.parseInput = function(input) {
@@ -80,59 +118,14 @@ Chat.View.prototype.parseInput = function(input) {
 
 Chat.View.prototype.parseCommand = function(input) {
 
-    try {
+    var parts = input.split(" ");
+    var parsedCommand = parts.shift();
+    var arguments = parts;
 
-        var parts = input.split(" ");
-
-        if (parts[0] == ".help") {
-
-            this.controls.output.append("Available commands:");
-            this.controls.output.append(".help - print help");
-            this.controls.output.append(".login nickname password color - logging in to chat");
-            this.controls.output.append(".logout - logging out from chat");
-
+    for (var i = 0; i < Chat.Command.length; i++) {
+        if ("." + Chat.Command[i].name == parsedCommand) {
+            Chat.Command[i].run.apply(this.chat, parts);
         }
-
-        else if (parts[0] == ".login") {
-
-            if (this.chat.user.logged == false) {
-
-                if (parts.length == 3) {
-                    this.chat.user.nickname = parts[1];
-                    this.chat.user.password = parts[2];
-                }
-                else if (parts.length == 4) {
-                    this.chat.user.nickname = parts[1];
-                    this.chat.user.password = parts[2];
-                    this.chat.user.color = parts[3];
-                }
-                else {
-                    throw("Wrong login command arguments number.");
-                }
-
-                this.chat.element.trigger(this.chat.events.LOGIN_ATTEMPT);
-
-            }
-            else {
-                throw("You must logout before login.");
-            }
-
-        }
-
-        else if (parts[0] == ".logout") {
-
-            if (this.chat.user.logged == true) {
-                this.chat.element.trigger(this.chat.events.LOGOUT_ATTEMPT);
-            }
-            else {
-                throw("You must login before logout.");
-            }
-
-        }
-
-    }
-    catch (exception) {
-        this.outputException(exception);
     }
 
 }
@@ -165,11 +158,104 @@ Chat.View.prototype.parseSendMessage = function(input) {
 
     }
     catch (exception) {
-        this.outputException(exception);
+        this.printMessage(exception);
     }
 
 }
 
-Chat.View.prototype.outputException = function(exception) {
-    this.controls.output.append("<div>" + exception + "</div>");
+Chat.View.prototype.parseOutputMessage = function(envelope) {
+
+    var output = "";
+
+    if (envelope.date) {
+        output += "[" + new Date(envelope.date).toLocaleTimeString() + "]";
+    }
+
+    if (envelope.message) {
+
+        var users = this.chat.model.getUsersByNickname([envelope.message.senderNickname, envelope.message.receiverNickname]);
+
+        if (envelope.message.senderNickname) {
+            if (users[0]) {
+                output += " " + this.colorizeUser(users[0]);
+            }
+            else {
+                output += " " + envelope.message.senderNickname;
+            }
+        }
+
+        if (envelope.message.receiverNickname) {
+            if (users[1]) {
+                output += " @" + this.colorizeUser(users[1]);
+            }
+            else {
+                output += " " + envelope.message.receiverNickname;
+            }
+        }
+
+        if (envelope.message.text) {
+            output += ". " + this.parseOutputMessageText(envelope.message.text);
+        }
+
+    }
+
+    return output;
+
+}
+
+Chat.View.prototype.parseOutputMessageText = function(text) {
+
+    text = text.replace(/\*([^\*]+)\*/g, '<b>$1</b>');
+    text = text.replace(/\_([^\_]+)\_/g, '<u>$1</u>');
+    text = text.replace(/\-([^\-]+)\-/g, '<s>$1</s>');
+    text = text.replace(/\[([^\|].+)\|(.+)\]/g, '<a href="$2">$1</a>');
+
+    return text;
+
+}
+
+Chat.View.prototype.updateUsersView = function() {
+    this.clearUsersOutput();
+    var users = this.chat.model.getUsers();
+    for (var i = 0; i < users.length; i++) {
+        this.printUser(this.colorizeUser(users[i]));
+    }
+//    this.controls.usersOutput.scrollTop(this.controls.usersOutput[0].scrollHeight);
+}
+
+Chat.View.prototype.printUser = function(user) {
+    this.controls.usersOutput.append("<div>" + user + "</div>");
+}
+
+Chat.View.prototype.clearUsersOutput = function() {
+    this.controls.usersOutput.text("");
+}
+
+Chat.View.prototype.colorizeUser = function(user) {
+
+    var output = '';
+    var style = '';
+
+    if (user) {
+
+        if (user.color) {
+            style += 'color:' + user.color + ';';
+        }
+
+        if (!user.logged) {
+            style += 'font-style:italic;';
+        }
+
+        if (user.nickname) {
+            output += '<span style="'+ style + '">' + user.nickname + '</span>';
+        }
+
+    }
+
+    return output;
+
+}
+
+Chat.View.prototype.printStatus = function(status) {
+    this.controls.statusOutput.html('<div>' + status + '</div>');
 }

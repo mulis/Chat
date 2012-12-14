@@ -1,15 +1,110 @@
 <style>
-.chat-output {
-    width: 500px;
-    height: 300px;
-    border: 1px inset;
+.chat-container {
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    border: 0px;
+    overflow: hidden;
+    background-color: silver;
+    font-family: serif;
+    font-size: medium;
+}
+.chat-controls-container {
+    position:absolute;
+    top: 0px;
+    height: auto;
+    bottom: 2em;
+    left: 0px;
+    width: auto;
+    right: 0px;
+    border: 0px;
+    overflow: hidden;
+}
+.chat-controls-container > * {
+    margin: 0px;
+    border: 0px;
+    padding: 2px;
+    background-color: snow;
+}
+.chat-messages-output {
+    position: absolute;
+    top: 4px;
+    height: auto;
+    bottom: 102px;
+    left: 4px;
+    width: auto;
+    right: 202px;
     overflow: hidden;
     overflow-y: scroll;
 }
-.chat-input {
-    width: 500px;
-    border: 1px inset;
+.chat-users-output {
+    position: absolute;
+    top: 4px;
+    height: auto;
+    bottom: 2px;
+    left: auto;
+    width: 190px;
+    right: 4px;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+.chat-message-input {
+    position: absolute;
+    top: auto;
+    height: 96px;
+    bottom: 2px;
+    left: 4px;
+    width: auto;
+    right: 202px;
+    font-family: serif;
+    font-size: medium;
+}
+.chat-status-output-container {
+    position:absolute;
+    top: auto;
+    height: 2em;
+    bottom: 0px;
+    left: 0px;
+    width: auto;
+    right: 0px;
+    border: 0px;
+    overflow: hidden;
+}
+.chat-status-output {
+    position:absolute;
+    top: 2px;
+    height: auto;
+    bottom: 4px;
+    left: 4px;
+    width: auto;
+    right: 4px;
+    margin: 0px;
+    border: 0px;
+    padding: 2px;
+    overflow: hidden;
+    background-color: snow;
+}
+.chat-status-output > div {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 1em;
+    margin: auto;
+    padding: 2px;
 }
 </style>
-<div class="chat-output"></div>
-<input type="text" class="chat-input" value="" />
+<div class="chat-container">
+    <div class="chat-controls-container">
+        <div class="chat-messages-output"></div>
+        <div class="chat-users-output"></div>
+        <textarea class="chat-message-input"></textarea>
+    </div>
+    <div class="chat-status-output-container">
+        <div class="chat-status-output"></div>
+    </div>
+</div>

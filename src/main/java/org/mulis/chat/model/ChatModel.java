@@ -3,7 +3,11 @@ package org.mulis.chat.model;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 @Service
 public class ChatModel {
@@ -15,17 +19,17 @@ public class ChatModel {
         put(ReservedChatUser.ANY.getUser().getNickname(), ReservedChatUser.ANY.getUser());
     }};
 
-    private final HashMap<String, ChatUser> users = (HashMap<String, ChatUser>) Collections.synchronizedMap(new HashMap<String, ChatUser>(reservedUsers));
+    private final ConcurrentSkipListMap<String, ChatUser> users = new ConcurrentSkipListMap<String, ChatUser>(reservedUsers);
 
-    private final LinkedList<ChatPostedMessage> messages = (LinkedList<ChatPostedMessage>) Collections.synchronizedList(new LinkedList<ChatPostedMessage>());
+    private final ConcurrentSkipListMap<Integer, ChatPostedMessage> messages = new ConcurrentSkipListMap<Integer, ChatPostedMessage>();
 
     private int messageIndex = -1;
 
     ChatModel() {
-        signin("user1", "", "green");
-        login("user1");
-        postMessage(getUser("user1").getNickname(), "", "message 1");
-        postMessage(getUser("user1").getNickname(), "user2", "message 2");
+        signin("mulis", "slim", "green");
+        //login("mulis");
+        postMessage(getUser("mulis").getNickname(), "", "hello everybody");
+        postMessage(getUser("mulis").getNickname(), "somebody", "hello somebody");
     }
 
     public ChatUser getUser(String nickname) {
@@ -45,7 +49,7 @@ public class ChatModel {
     }
 
     public void signin(String nickname, String password, String color) {
-        addUser(new ChatUser(nickname, password, color, true, messageIndex));
+        addUser(new ChatUser(nickname, password, color, false, -1));
     }
 
     public void signout(String nickname) {
@@ -67,7 +71,8 @@ public class ChatModel {
     }
 
     public void logout(String nickname) {
-        getUser(nickname).setLogged(false);
+        ChatUser user = getUser(nickname);
+        user.setLogged(false);
     }
 
     public boolean isLogged(String nickname) {
@@ -90,85 +95,79 @@ public class ChatModel {
         return ReservedChatUser.ANY.getUser();
     }
 
+    public int getMessageIndex() {
+        return messageIndex;
+    }
+
     public ChatPostedMessage postMessage(String senderNickname, String receiverNickname, String text) {
         return postMessage(new ChatMessage(senderNickname, receiverNickname, text));
     }
 
     public ChatPostedMessage postMessage(ChatMessage message) {
+
+        logger.debug("postMessage");
+
         ChatPostedMessage postedMessage = new ChatPostedMessage(++messageIndex, new Date(), message);
-        messages.push(postedMessage);
+        messages.put(postedMessage.getIndex(), postedMessage);
+
+        logger.debug("postedMessage: " + postedMessage);
+
         return postedMessage;
+
     }
 
-    public LinkedList<ChatPostedMessage> getMessages() {
-        return this.messages;
+    public Collection<ChatUser> getUsers() {
+        return users.values();
     }
 
-    public LinkedList<ChatPostedMessage> getMessages(String nickname) {
+    public Collection<ChatPostedMessage> getMessages() {
+        return this.messages.values();
+    }
 
-        logger.debug("getMessages");
+    public Collection<ChatPostedMessage> getNewMessages(String nickname) {
+
+        logger.debug("getNewMessages");
         logger.debug("nickname: " + nickname);
 
         ChatUser user = getUser(nickname);
-        logger.debug("user: " + user);
-        LinkedList<ChatPostedMessage> userMessages = new LinkedList<ChatPostedMessage>();
-        Iterator<ChatPostedMessage> iterator = this.messages.descendingIterator();
-        ChatPostedMessage message;
 
-        while (iterator.hasNext()) {
-
-            message = iterator.next();
-
-            logger.debug("message: " + message);
-
-            if (message.getIndex() > user.getLastMessageIndex()) {
-                if (message.getMessage().getSenderNickname().equals(user.getNickname()) ||
-                        message.getMessage().getReceiverNickname().equals(user.getNickname()) ||
-                        message.getMessage().getReceiverNickname().equals(getAny().getNickname())) {
-                    userMessages.push(message);
-                }
-            } else {
-                break;
-            }
-
-        }
-
+        Collection<ChatPostedMessage> userMessages = this.messages.tailMap(user.getLastMessageIndex(), false).values();
         user.setLastMessageIndex(user.getLastMessageIndex() + userMessages.size());
+
+        logger.debug("userMessages: " + userMessages.size());
 
         return userMessages;
 
     }
 
-    public LinkedList<ChatPostedMessage> getMessages(String nickname, int fromId, int toId) {
+    public Collection<ChatPostedMessage> getMessages(String nickname, int fromId, int toId) {
 
         logger.debug("getMessages");
         logger.debug("nickname: " + nickname);
+        logger.debug("fromId: " + fromId);
+        logger.debug("toId: " + toId);
 
         ChatUser user = getUser(nickname);
-        logger.debug("user: " + user);
-        LinkedList<ChatPostedMessage> userMessages = new LinkedList<ChatPostedMessage>();
-        Iterator<ChatPostedMessage> iterator = this.messages.descendingIterator();
-        ChatPostedMessage message;
+
+        Collection<ChatPostedMessage> userMessages = this.messages.subMap(fromId, true, toId, true).values();
+
+        Iterator<ChatPostedMessage> iterator = userMessages.iterator();
+        ChatPostedMessage postedMessage;
+        boolean match;
 
         while (iterator.hasNext()) {
 
-            message = iterator.next();
+            postedMessage = iterator.next();
 
-            logger.debug("message: " + message);
+            match = postedMessage.getMessage().getSenderNickname().equals(user.getNickname()) ||
+                    postedMessage.getMessage().getReceiverNickname().equals(user.getNickname()) ||
+                    postedMessage.getMessage().getReceiverNickname().equals(getAny().getNickname());
 
-            if (message.getIndex() > user.getLastMessageIndex()) {
-                if (message.getMessage().getSenderNickname().equals(user.getNickname()) ||
-                        message.getMessage().getReceiverNickname().equals(user.getNickname()) ||
-                        message.getMessage().getReceiverNickname().equals(getAny().getNickname())) {
-                    userMessages.push(message);
-                }
-            } else {
-                break;
-            }
+            if (!match) iterator.remove();
 
         }
 
-        user.setLastMessageIndex(user.getLastMessageIndex() + userMessages.size());
+        logger.debug("userMessages: " + userMessages.size());
 
         return userMessages;
 

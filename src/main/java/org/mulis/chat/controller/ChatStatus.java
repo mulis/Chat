@@ -31,6 +31,7 @@ public enum ChatStatus {
 
     USER_POST_MESSAGE("User %s post message."),
     USER_GET_MESSAGES("User %s get messages."),
+    USER_GET_USERS("User %s get users."),
 
     SYSTEM_STATE_UNKNOWN("System state unknown.");
 
