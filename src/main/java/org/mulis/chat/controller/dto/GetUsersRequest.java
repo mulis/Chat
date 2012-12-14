@@ -1,4 +1,4 @@
-package org.mulis.chat.controller;
+package org.mulis.chat.controller.dto;
 
 public class GetUsersRequest {
 
